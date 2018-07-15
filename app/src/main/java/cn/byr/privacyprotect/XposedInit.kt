@@ -52,7 +52,7 @@ class XposedInit : IXposedHookLoadPackage {
 
     // 获取当前应用及模块监测开关状态并返回，应用及模块名称赋给类中的私有变量
     fun getStateAndName(context: Context, methodName: String, packageName: String): Boolean {
-        var state = true
+        var state = false
         val cursor_module = context.contentResolver.query(moduleState_URI, null, "methodName = ?", Array<String>(1){methodName}, null)
         val cursor_app = context.contentResolver.query(appState_URI,  null, "packageName = ?", Array<String>(1){packageName}, null)
         if (cursor_module == null || cursor_app == null)    // app未启动
@@ -60,7 +60,7 @@ class XposedInit : IXposedHookLoadPackage {
         if (cursor_module.moveToFirst() && cursor_app.moveToFirst()) {
             state = cursor_module.getInt(cursor_module.getColumnIndex("state")) == 1 && cursor_app.getInt(cursor_app.getColumnIndex("state")) == 1
             moduleName = cursor_module.getString(cursor_module.getColumnIndex("moduleName"))
-            appName = cursor_module.getString(cursor_module.getColumnIndex("appName"))
+            appName = cursor_app.getString(cursor_app.getColumnIndex("appName"))
         } else {
             moduleName = cursor_module.getString(cursor_module.getColumnIndex("moduleName"))
             appName = packageName
