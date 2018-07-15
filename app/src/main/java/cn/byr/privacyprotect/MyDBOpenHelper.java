@@ -33,6 +33,16 @@ public class MyDBOpenHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_APPSTATE);
         db.execSQL(CREATE_MODULESTATE);
         db.execSQL(CREATE_LOG);
+        resetModule(db);
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVers, int newVers) {
+
+    }
+
+    public void resetModule(SQLiteDatabase db) {
+        db.execSQL("delete from ModuleState");
         db.execSQL(INSERT_MODULE, new String[] { "android.hardware.Camera.open", "相机" });
         db.execSQL(INSERT_MODULE, new String[] { "android.location.LocationManager.requestLocationUpdates", "定位" });
         db.execSQL(INSERT_MODULE, new String[] { "android.media.AudioRecord.startRecording", "录音" });
@@ -42,11 +52,12 @@ public class MyDBOpenHelper extends SQLiteOpenHelper {
         db.execSQL(INSERT_MODULE, new String[] { "短信", "短信" });
     }
 
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVers, int newVers) {
-        db.execSQL("drop table if exists AppState");
-        db.execSQL("drop table if exists ModuleState");
-        db.execSQL("drop table if exists Log");
+    public static boolean changeIntToBool(int i){
+        return i == 1;
+    }
+
+    public static int changeBoolToInt(Boolean b){
+        return b ? 1 : 0;
     }
 
 }
