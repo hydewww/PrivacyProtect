@@ -117,6 +117,9 @@ class XposedInit : IXposedHookLoadPackage {
                         myLog(context, newStateAndName)
                         myToast(context, newStateAndName)
                     }
+                } else if (newStateAndName.moduleName == "相机") {    // 禁用相机
+                    val exception = java.lang.RuntimeException("")
+                    param.result = exception
                 }
                 if (!newStateAndName.isNull())  // 会一直产生isNull的数据
                     mStateAndName = newStateAndName
