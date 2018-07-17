@@ -51,25 +51,30 @@ class XposedInit : IXposedHookLoadPackage {
     }
 
     // 获取当前应用及模块监测开关状态并返回，应用及模块名称赋给类中的私有变量
+    // state = false 则无通知
     fun getStateAndName(context: Context, methodName: String, packageName: String): Boolean {
-        var state = false
-        var newmoduleName = methodName
-        var newappName = packageName
         val cursor_module = context.contentResolver.query(moduleState_URI, null, "methodName = ?", Array<String>(1){methodName}, null)
         val cursor_app = context.contentResolver.query(appState_URI,  null, "packageName = ?", Array<String>(1){packageName}, null)
         if (cursor_module == null || cursor_app == null)    // app未启动
             return false
-        if (cursor_module.moveToFirst() && cursor_app.moveToFirst()) {  // 均查到数据
-            state = cursor_module.getInt(cursor_module.getColumnIndex("state")) == 1 && cursor_app.getInt(cursor_app.getColumnIndex("state")) == 1
-            newmoduleName = cursor_module.getString(cursor_module.getColumnIndex("moduleName"))
-            newappName = cursor_app.getString(cursor_app.getColumnIndex("appName"))
-            if (newmoduleName == moduleName && newappName == appName)
-                state = false
-            moduleName = newmoduleName
-            appName = newappName
+        if (!cursor_module.moveToFirst() || !cursor_app.moveToFirst()) {  // app或module不在列表内
+            cursor_module.close();cursor_app.close()
+            return false
         }
+        val state = cursor_module.getInt(cursor_module.getColumnIndex("state")) == 1 && cursor_app.getInt(cursor_app.getColumnIndex("state")) == 1
+        val newmoduleName = cursor_module.getString(cursor_module.getColumnIndex("moduleName"))
+        val newappName = cursor_app.getString(cursor_app.getColumnIndex("appName"))
         cursor_module.close();cursor_app.close()
-        return state
+        if (!state) {   // 解决禁用再开启后无通知
+            moduleName = ""     // 重置
+            appName = ""
+            return false
+        }
+        if (newmoduleName == moduleName && newappName == appName)   // 防止重复通知
+            return false
+        moduleName = newmoduleName
+        appName = newappName
+        return true
     }
 
     // 统一的hook操作
@@ -101,8 +106,7 @@ class XposedInit : IXposedHookLoadPackage {
     }
 
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
-        // 不监控系统应用
-        if ("com.android" in lpparam.packageName || "android" == lpparam.packageName)
+        if ("com.android" in lpparam.packageName || "android" == lpparam.packageName) // 不监控系统应用
             return
 
         addHook(lpparam, "android.hardware.Camera", "open")
