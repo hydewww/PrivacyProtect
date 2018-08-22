@@ -22,6 +22,16 @@ class XposedInit : IXposedHookLoadPackage {
 
     var mStateAndName = StateAndName()
 
+    // 应用及模块监测开关状态及名字
+    inner class StateAndName {
+        var state = false
+        var moduleName = ""
+        var appName = ""
+        fun isNull() : Boolean {
+            return !state && moduleName == "" && appName == ""
+        }
+    }
+
     // 产生调用时发起Toast
     fun myToast(context: Context, newStateAndName: StateAndName) {
         val alog = "${newStateAndName.appName} 调用 ${newStateAndName.moduleName}"
@@ -62,16 +72,6 @@ class XposedInit : IXposedHookLoadPackage {
             uriName = "短信"
         }
         return uriName
-    }
-
-    // 应用及模块监测开关状态及名字
-    inner class StateAndName {
-        var state = false
-        var moduleName = ""
-        var appName = ""
-        fun isNull() : Boolean {
-            return !state && moduleName == "" && appName == ""
-        }
     }
 
     // 获取当前应用及模块监测开关状态及名字
